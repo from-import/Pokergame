@@ -1,0 +1,172 @@
+import random
+from time import sleep
+import os
+import openai
+import requests
+
+api_key = " " #your openai api
+openai.api_key = api_key
+os.environ["http_proxy"] = "http://127.0.0.1:7890"# your proxy port
+os.environ["https_proxy"] = "http://127.0.0.1:7890"
+
+
+def chatgpt(message):
+    # 配置OpenAI API凭证
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer %s" % openai.api_key
+    }
+
+    data = {
+        "model": "gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": "%s" % message}],
+        "temperature": 0.7
+    }
+
+    while(1):
+        try:
+            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data)
+            return (response.json().get("choices")[0].get("message").get("content"))
+        except:
+            sleep(1)
+
+
+class Poker:
+    def __init__(self, name, card1=0, card2=0, chips=20, big=0, small=0):
+        self.name = name
+        self.card1 = card1
+        self.card2 = card2
+        self.chips = chips
+        self.big = big
+        self.small = small
+
+    def get_card(self):
+        if self.card1 == 0:
+            self.card1 = random.randint(1, 13)
+
+        if self.card2 == 0:
+            self.card2 = random.randint(1, 13)
+
+        if self.card1 == 0 and self.card2 == 0:
+            self.card1 = random.randint(1, 13)
+            self.card2 = random.randint(1, 13)
+
+        self.big=0
+        self.small=0
+
+        if self.card1 >= 8 or self.card1 == 1:
+            self.big=self.big+1
+        if self.card2 >= 8 or self.card2 == 1:
+            self.big=self.big+1
+
+        self.small=2-self.big
+        print("AI's Hand:\n%s big\n%s small\n"%(self.big,self.small))
+
+    def show(self,big,small,chips):
+        message = "I want you play a game with me. your hand is {} and {}, your chips is {}, Cards with points 2-7 are low cards, cards with points equal to 1 or greater than 7 are high cards, your opponent has {} high card and {} low card in this game, and he has {} chips, The bigger the number of points in the hand, the stronger it is. In particular, the card with a point of 1 is the strongest, but it will be restrained by the card with a point of 2. Your goal is to win all the opponent's chips. Now, please choose one card to play. Your card should be one of {} or {} Please reply the points directly, and reply in digital form, such as 5,7,3,5,just return the point of the card,without any explanatory statement".format(
+            self.card1, self.card2, self.chips, big, small,chips,self.card1, self.card2)
+        return(chatgpt(message))
+
+    def aishow(self):
+        pass
+
+    def cheating(self):
+        print("\nYou dirty hacker:","\nCard1:",self.card1,"\nCard2:",self.card2)
+
+
+
+    def ridicule(self):
+        print(chatgpt("I'm playing a poker game with someone, please help me generate a sarcastic comment"))
+
+
+
+
+class Player:
+    def __init__(self, name, card1=0, card2=0, chips=20, big=0, small=0):
+        self.name = name
+        self.card1 = card1
+        self.card2 = card2
+        self.chips = chips
+        self.big = big
+        self.small = small
+
+    def get_card(self):
+        if self.card1 == 0:
+            self.card1 = random.randint(1, 13)
+
+        if self.card2 == 0:
+            self.card2 = random.randint(1, 13)
+
+        if self.card1 == 0 and self.card2 == 0:
+            self.card1 = random.randint(1, 13)
+            self.card2 = random.randint(1, 13)
+
+        self.big=0
+        self.small=0
+
+        if self.card1 >= 8 or self.card1 == 1:
+            self.big=self.big+1
+        if self.card2 >= 8 or self.card2 == 1:
+            self.big=self.big+1
+
+        self.small=2-self.big
+        print("Player's Hand:",self.card1,self.card2,"\n")
+
+
+Sophie = Poker("Sophie")
+player=Player("player")
+
+#Sophie.ridicule()
+
+
+
+
+
+
+def competition(card1,card2):
+    if card1 == 1:
+        return 1
+
+    elif card1>card2:
+        return 1
+    elif card1<card2:
+        return -1
+
+
+
+
+while(True):
+    Sophie.get_card()
+    player.get_card()
+
+    player_card = int(input("which?:"))
+    while(1):
+        try:
+            Sophie_card = int(Sophie.show(player.big,player.small,player.chips))
+            break
+        except:
+            pass
+
+    #判断哪张牌被出了
+    if Sophie.card1==Sophie_card:
+        Sophie.card1 = 0
+    else:
+        Sophie.card2 = 0
+
+    if player.card1 == player_card:
+        player.card1 = 0
+    else:
+        player.card2 = 0
+
+
+    player.chips=player.chips+int(competition(player_card,Sophie_card))
+    print("Sophie_card is ",Sophie_card,)
+
+    print("player.chips is ",player.chips,"\n")
+    if player.chips>39:
+        break
+
+
+
+
